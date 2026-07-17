@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEPARTURE_PROTOCOL.EXE</title>
+<meta name="description" content="Form DPRT-7. An aviation surveillance dossier on Ethereum. Every flight the artist takes is logged as a token. The window to claim a record is the flight itself.">
+<meta property="og:title" content="DEPARTURE_PROTOCOL.EXE">
+<link rel="canonical" href="https://departureprotocol.art/">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0B0906">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DEPARTURE_PROTOCOL.EXE">
+<meta property="og:url" content="https://departureprotocol.art/">
+<meta property="og:image" content="https://departureprotocol.art/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Form DPRT-7. Departure Protocol: an aviation surveillance dossier on Ethereum.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DEPARTURE_PROTOCOL.EXE">
+<meta name="twitter:description" content="The state watches movement. The collection makes the watching collectible. Every flight the artist takes is logged as a token on Ethereum, rendered from the real boarding pass. The window to claim a record is the flight.">
+<meta name="twitter:image" content="https://departureprotocol.art/og.png">
+<meta property="og:description" content="The state watches movement. The collection makes the watching collectible. The window to claim a record is the flight.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<style>
+:root { --bg:#0B0906; --panel:#141109; --ink:#E8EEF4; --dim:#766E60; --mag:#FF1F9C; --cyn:#19F0FF; --yel:#E8FF2E; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--ink); font-family:'Silkscreen','Courier New',monospace; overflow-x:hidden; }
+body::after { content:""; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px); }
+.wrap { max-width:1060px; margin:0 auto; padding:0 clamp(16px,4vw,40px); }
+header { padding:clamp(40px,9vh,90px) 0 clamp(24px,5vh,50px); }
+.form { color:var(--dim); font-size:clamp(10px,1.6vw,12px); letter-spacing:2px; margin-bottom:14px; }
+h1 { font-family:'Press Start 2P',monospace; font-size:clamp(17px,4.6vw,42px); line-height:1.25;
+     color:var(--ink); text-shadow:-3px 0 var(--mag), 3px 0 var(--cyn); word-break:break-word; }
+.tag { margin-top:20px; color:var(--dim); font-size:clamp(12px,2vw,15px); line-height:1.8; max-width:640px; }
+.tag b { color:var(--yel); font-weight:400; }
+.cta-row { display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
+.btn { display:inline-block; background:var(--yel); color:#0B0906; text-decoration:none;
+       font-size:clamp(12px,2vw,14px); padding:16px 26px; min-height:48px; }
+.btn.ghost { background:var(--panel); color:var(--cyn); }
+.live { font-size:clamp(10px,1.7vw,12px); color:var(--cyn); margin-top:16px; min-height:18px; }
+section { padding:clamp(28px,6vh,60px) 0; }
+.redact { display:flex; align-items:center; gap:14px; margin-bottom:26px; }
+.redact .bar { flex:0 0 auto; width:clamp(60px,14vw,140px); height:16px; background:var(--mag); }
+.redact h2 { font-size:clamp(13px,2.4vw,18px); letter-spacing:2px; color:var(--ink); font-weight:400; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr)); gap:14px; }
+.card { background:var(--panel); padding:22px 20px; font-size:clamp(11px,1.9vw,13px); line-height:1.9; color:var(--dim); }
+.card b { display:block; color:var(--yel); font-weight:400; margin-bottom:10px; font-size:clamp(12px,2vw,14px); }
+.card .c { color:var(--cyn); }
+.records { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr)); gap:16px; }
+.rec { background:var(--panel); }
+.rec img { width:100%; display:block; aspect-ratio:750/950; object-fit:cover; background:#0e0c08; image-rendering:pixelated; }
+.rec .meta { padding:14px 16px 18px; font-size:clamp(10px,1.8vw,12px); line-height:1.8; }
+.rec .meta .id { color:var(--yel); font-size:clamp(12px,2vw,14px); }
+.rec .meta .st { color:var(--cyn); }
+.rec .meta .st.gone { color:var(--mag); }
+.rec .meta .st.decl { color:var(--yel); }
+.rec .meta .dim { color:var(--dim); word-break:break-all; }
+.artist p { color:var(--dim); font-size:clamp(12px,2vw,14px); line-height:2; max-width:640px; }
+.artist b { color:var(--ink); font-weight:400; }
+footer { padding:50px 0 90px; color:var(--dim); font-size:clamp(9px,1.6vw,11px); line-height:2.2; word-break:break-all; }
+footer a { color:var(--cyn); text-decoration:none; }
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebSite","name":"DEPARTURE_PROTOCOL.EXE","url":"https://departureprotocol.art/","description":"An aviation surveillance dossier on Ethereum. Every flight the artist takes is logged as a token; the window to claim a record is the flight itself."},
+{"@type":"VisualArtwork","name":"DEPARTURE_PROTOCOL.EXE","artform":"Digital art, generative, ERC-721","artMedium":"Deterministic render from flown boarding passes","creator":{"@type":"Person","name":"Greencross","alternateName":"DITHERVOID"},"url":"https://departureprotocol.art/"}]}
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="form">FORM DPRT-7 :: FEDERAL AIR MOVEMENT REGISTRY :: CLASSIFICATION :: DEPARTURE</div>
+  <h1>DEPARTURE_<br>PROTOCOL.EXE</h1>
+  <div class="tag">The state watches movement. The collection makes the watching collectible.
+  Every flight the artist takes is logged as a record on Ethereum. The artwork is rendered
+  from the real boarding pass. The subject is redacted. The movement is provable.
+  <b>The window to claim a record is the flight itself.</b></div>
+  <div class="cta-row">
+    <a class="btn" href="mint.html">ENTER REGISTRY :: MINT</a>
+    <a class="btn ghost" href="#mechanics">HOW IT WORKS</a>
+  </div>
+  <div class="live" id="live">synchronizing with registry...</div>
+</header>
+
+<section id="mechanics">
+  <div class="redact"><div class="bar"></div><h2>MECHANICS</h2></div>
+  <div class="grid">
+    <div class="card"><b>01 :: THE COMMITMENT</b>
+      Each boarding pass carries a PDF417 barcode with the raw airline payload inside.
+      Its keccak256 hash is stored on-chain per token. Nobody can reproduce the hash
+      without the pass. <span class="c">The art is the proof.</span></div>
+    <div class="card"><b>02 :: THE WINDOW</b>
+      A record is filed before boarding. The purchase window opens at scheduled departure
+      and closes at arrival. While the subject is airborne, anyone may claim the record.
+      <span class="c">Wheels-down closes the file.</span></div>
+    <div class="card"><b>03 :: SEALED / DECLASSIFIED</b>
+      During the flight the token is SEALED: rendered from the commitment hash only,
+      every identifying field a redaction bar. At landing it flips DECLASSIFIED:
+      route hero, full ledger, the true barcode wall processed beyond recovery.
+      <span class="c">The reveal is the landing.</span></div>
+    <div class="card"><b>04 :: UNCLAIMED = SEALED FOREVER</b>
+      A record nobody claims during its flight locks permanently at window close.
+      No re-list. No re-open. Enforced in the contract, not by promise.
+      <span class="c">If you were not watching while the subject flew, you missed it.</span></div>
+    <div class="card"><b>05 :: THE LEDGER</b>
+      Payments forward to the artist inside the buyer's own transaction; the contract
+      holds nothing. Storage is permanent on Arweave, paid once. Maximum 12 records
+      can ever exist. <span class="c">Royalties 6.9 percent.</span></div>
+    <div class="card"><b>06 :: CHAPTERS</b>
+      The accent color of each record derives from its real booking reference.
+      One booking, one chapter. The data picks the palette, not the artist.
+      <span class="c">Collectors can complete chapters.</span></div>
+  </div>
+</section>
+
+<section id="records">
+  <div class="redact"><div class="bar" style="background:var(--cyn)"></div><h2>RECORDS</h2></div>
+  <div class="records" id="recgrid"><div class="card">reading the registry...</div></div>
+</section>
+
+<section id="artist" class="artist">
+  <div class="redact"><div class="bar" style="background:var(--yel)"></div><h2>SUBJECT :: [REDACTED]</h2></div>
+  <p><b>Greencross (DITHERVOID)</b> is a cryptoartist working in surveillance aesthetics,
+  bureaucratic fiction, and deterministic systems. DEPARTURE_PROTOCOL.EXE documents a
+  45-day tour across the United States as a live aviation dossier: each leg decoded from
+  the flown boarding pass, rendered by a locked pipeline where the same pass always
+  produces identical pixels, and filed to the registry before boarding. The artist goes
+  airborne and offline; the machine sells the record while the subject is in transit.</p>
+</section>
+
+<footer>
+  REGISTRY CONTRACT :: <a href="https://etherscan.io/address/0x9Ea50aaC3325ca175A9cedD1930c87eE2F34479c" target="_blank" rel="noopener">0x9Ea50aaC3325ca175A9cedD1930c87eE2F34479c</a><br>
+  ERC-721 :: ETHEREUM MAINNET :: MAX 12 RECORDS :: STORAGE :: ARWEAVE, PERMANENT<br>
+  NO PASSENGER NAME OR BOOKING DATA EXISTS ON-CHAIN OR IN ANY ARTWORK. HASH ONLY.
+</footer>
+
+</div>
+<script>
+const CONTRACT = "0x9Ea50aaC3325ca175A9cedD1930c87eE2F34479c";
+const RPC = "https://ethereum-rpc.publicnode.com";
+const GATEWAYS = ["https://arweave.net/", "https://turbo-gateway.com/"];
+const ABI = [
+  "function recordCount() view returns (uint256)",
+  "function record(uint256) view returns (tuple(bytes32 boardingPassHash, string sealedURI, string declassifiedURI, uint64 windowOpen, uint64 windowClose, uint64 allowlistUntil, uint256 price, bool minted, bool declassified))",
+];
+const arId = (uri) => uri.replace(/^ar:\/\//, "");
+async function arFetch(uri) {
+  for (const g of GATEWAYS) {
+    try { const r = await fetch(g + arId(uri)); if (r.ok) return await r.json(); } catch {}
+  }
+  throw new Error("gateway");
+}
+function arImg(imgEl, uri) {
+  let i = 0;
+  imgEl.onerror = () => { i++; if (i < GATEWAYS.length) imgEl.src = GATEWAYS[i] + arId(uri); };
+  imgEl.src = GATEWAYS[0] + arId(uri);
+}
+function stateOf(r, now) {
+  if (r.minted) return r.declassified ? ["DECLASSIFIED", "decl"] : ["SEALED :: IN TRANSIT", ""];
+  if (now < r.windowOpen) return ["PRE-WINDOW", "dim"];
+  if (now < r.windowClose) return ["WINDOW LIVE :: CLAIMABLE", ""];
+  return ["LOCKED :: SEALED FOREVER", "gone"];
+}
+async function load() {
+  try {
+    const provider = new ethers.JsonRpcProvider(RPC);
+    const c = new ethers.Contract(CONTRACT, ABI, provider);
+    const n = Number(await c.recordCount());
+    const now = Math.floor(Date.now() / 1000);
+    let liveCount = 0;
+    const grid = document.getElementById("recgrid");
+    grid.innerHTML = "";
+    for (let i = 1; i <= n; i++) {
+      const r = await c.record(i);
+      const [label, cls] = stateOf(r, now);
+      if (!r.minted && now >= r.windowOpen && now < r.windowClose) liveCount++;
+      const div = document.createElement("div"); div.className = "rec";
+      const img = document.createElement("img");
+      img.alt = "REC " + String(i).padStart(3, "0");
+      img.loading = "lazy";
+      div.appendChild(img);
+      const meta = document.createElement("div"); meta.className = "meta";
+      meta.innerHTML = `<span class="id">REC ${String(i).padStart(3, "0")}</span><br>` +
+        `<span class="st ${cls}">${label}</span><br>` +
+        `<span class="dim">commit ${r.boardingPassHash.slice(0, 26)}..</span>`;
+      div.appendChild(meta);
+      grid.appendChild(div);
+      arFetch(r.declassified ? r.declassifiedURI : r.sealedURI)
+        .then((m) => arImg(img, m.image))
+        .catch(() => { img.remove(); });
+    }
+    document.getElementById("live").textContent =
+      `REGISTRY LIVE :: ${n} RECORD(S) FILED :: ${liveCount} WINDOW(S) OPEN NOW`;
+  } catch (e) {
+    document.getElementById("live").textContent = "registry offline, retrying...";
+    setTimeout(load, 15000);
+  }
+}
+load();
+</script>
+</body>
+</html>

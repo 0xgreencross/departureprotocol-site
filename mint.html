@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REGISTRY :: DEPARTURE_PROTOCOL.EXE</title>
+<meta name="description" content="Claim flight records while the subject is airborne. 0.00999 ETH per record, sealed until wheels-down, unclaimed records lock forever.">
+<link rel="canonical" href="https://departureprotocol.art/mint.html">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0B0906">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DEPARTURE_PROTOCOL.EXE">
+<meta property="og:url" content="https://departureprotocol.art/mint.html">
+<meta property="og:image" content="https://departureprotocol.art/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Form DPRT-7. Departure Protocol: an aviation surveillance dossier on Ethereum.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="REGISTRY :: DEPARTURE_PROTOCOL.EXE">
+<meta name="twitter:description" content="Claim flight records while the subject is airborne. 0.00999 ETH per record, sealed until wheels-down, unclaimed records lock forever.">
+<meta name="twitter:image" content="https://departureprotocol.art/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<style>
+:root { --bg:#0B0906; --panel:#141109; --panel2:#1b1710; --ink:#E8EEF4; --dim:#766E60; --mag:#FF1F9C; --cyn:#19F0FF; --yel:#E8FF2E; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:var(--bg); color:var(--ink); font-family:'Silkscreen','Courier New',monospace; padding-bottom:80px; }
+body::after { content:""; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px); }
+.wrap { max-width:1060px; margin:0 auto; padding:0 clamp(14px,4vw,40px); }
+header { padding:clamp(26px,6vh,54px) 0 20px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; justify-content:space-between; }
+h1 { font-family:'Press Start 2P',monospace; font-size:clamp(13px,3.4vw,24px);
+     text-shadow:-3px 0 var(--mag), 3px 0 var(--cyn); }
+h1 a { color:var(--ink); text-decoration:none; }
+.sub { color:var(--dim); font-size:clamp(9px,1.7vw,11px); margin-top:10px; letter-spacing:1px; }
+#wallet { background:var(--panel); color:var(--cyn); font-family:inherit; font-size:clamp(11px,1.8vw,12px);
+          padding:14px 18px; min-height:48px; cursor:pointer; border:0; }
+.net { font-size:clamp(9px,1.7vw,11px); color:var(--yel); margin:6px 0 24px; word-break:break-all; }
+.rec { background:var(--panel); margin-bottom:16px; display:grid; grid-template-columns:120px 1fr; gap:0; overflow:hidden; }
+.rec .thumb { width:120px; height:152px; object-fit:cover; background:var(--panel2); image-rendering:pixelated; display:block; }
+.rec .body { padding:16px 18px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.rec .top { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:baseline; }
+.rec .id { color:var(--yel); font-size:clamp(13px,2.4vw,16px); }
+.rec .st { font-size:clamp(10px,1.9vw,12px); color:var(--cyn); }
+.rec .st.gone { color:var(--mag); }
+.rec .st.decl { color:var(--yel); }
+.rec .win { color:var(--dim); font-size:clamp(9px,1.7vw,11px); line-height:1.7; }
+.rec .cd { color:var(--cyn); }
+.rec .hash { color:var(--dim); font-size:clamp(8px,1.5vw,10px); word-break:break-all; }
+.rec button { align-self:flex-start; background:var(--yel); color:#0B0906; font-family:inherit;
+  font-size:clamp(12px,2vw,14px); padding:14px 22px; min-height:48px; cursor:pointer; border:0; margin-top:4px; }
+.rec button:disabled { background:var(--panel2); color:var(--dim); cursor:default; }
+@media (max-width:520px) {
+  .rec { grid-template-columns:1fr; }
+  .rec .thumb { width:100%; height:auto; aspect-ratio:750/950; max-height:340px; }
+  .rec button { align-self:stretch; text-align:center; }
+}
+#status { position:fixed; bottom:0; left:0; right:0; background:var(--panel); z-index:10000;
+          padding:14px clamp(14px,4vw,40px); font-size:clamp(9px,1.8vw,11px); color:var(--cyn); word-break:break-all; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1><a href="index.html">DEPARTURE_PROTOCOL.EXE</a></h1>
+    <div class="sub">FEDERAL AIR MOVEMENT REGISTRY :: THE WINDOW TO CLAIM A RECORD IS THE FLIGHT</div>
+  </div>
+  <button id="wallet">CONNECT WALLET</button>
+</header>
+<div class="net" id="net">connecting to registry...</div>
+<div id="records"></div>
+</div>
+<div id="status">STANDBY</div>
+<script>
+const Q = new URLSearchParams(location.search);
+const CONTRACT = Q.get("contract") || "0x9Ea50aaC3325ca175A9cedD1930c87eE2F34479c";
+const CHAIN_ID = parseInt(Q.get("chain") || "1", 10);
+const RPC = Q.get("rpc") || (CHAIN_ID === 11155111
+  ? "https://ethereum-sepolia-rpc.publicnode.com" : "https://ethereum-rpc.publicnode.com");
+const GATEWAYS = ["https://arweave.net/", "https://turbo-gateway.com/"];
+const ABI = [
+  "function recordCount() view returns (uint256)",
+  "function record(uint256) view returns (tuple(bytes32 boardingPassHash, string sealedURI, string declassifiedURI, uint64 windowOpen, uint64 windowClose, uint64 allowlistUntil, uint256 price, bool minted, bool declassified))",
+  "function processSubjectClaim(uint256 recId, bytes32[] proof) payable",
+];
+const $ = (id) => document.getElementById(id);
+const say = (m) => { $("status").textContent = m; };
+const fmt = (ts) => new Date(Number(ts) * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
+const provider = new ethers.JsonRpcProvider(RPC);
+const registry = new ethers.Contract(CONTRACT, ABI, provider);
+const arId = (u) => u.replace(/^ar:\/\//, "");
+function arImg(img, uri) {
+  let i = 0;
+  img.onerror = () => { i++; if (i < GATEWAYS.length) img.src = GATEWAYS[i] + arId(uri); else img.remove(); };
+  img.src = GATEWAYS[0] + arId(uri);
+}
+async function arFetch(uri) {
+  for (const g of GATEWAYS) { try { const r = await fetch(g + arId(uri)); if (r.ok) return await r.json(); } catch {} }
+  return null;
+}
+
+let account = null;
+async function connect() {
+  if (!window.ethereum) { say("NO WALLET DETECTED. Open this page inside your wallet's browser (MetaMask, Zerion, Rainbow) or install a wallet extension."); return; }
+  try {
+    const bp = new ethers.BrowserProvider(window.ethereum);
+    const accs = await bp.send("eth_requestAccounts", []);
+    account = accs[0];
+    $("wallet").textContent = account.slice(0, 6) + ".." + account.slice(-4);
+    say("WALLET CONNECTED :: " + account);
+  } catch (e) { say("CONNECTION REFUSED :: " + (e.shortMessage || e.message).slice(0, 100)); }
+}
+$("wallet").onclick = connect;
+
+async function mint(id, price) {
+  if (!window.ethereum) { say("NO WALLET DETECTED. Open this page inside your wallet app's browser."); return; }
+  try {
+    say(`REC ${String(id).padStart(3, "0")} :: requesting signature...`);
+    const bp = new ethers.BrowserProvider(window.ethereum);
+    await bp.send("eth_requestAccounts", []);
+    const net = await bp.getNetwork();
+    if (Number(net.chainId) !== CHAIN_ID) {
+      try { await bp.send("wallet_switchEthereumChain", [{ chainId: "0x" + CHAIN_ID.toString(16) }]); }
+      catch { say(`WRONG NETWORK. Switch your wallet to Ethereum mainnet.`); return; }
+    }
+    const signer = await bp.getSigner();
+    const tx = await registry.connect(signer).processSubjectClaim(id, [], { value: price });
+    say(`CLAIM SUBMITTED :: ${tx.hash} :: awaiting confirmation...`);
+    await tx.wait();
+    say("RECORD CLAIMED. Fee forwarded to the registry treasury. The token stays SEALED until wheels-down.");
+    render();
+  } catch (e) { say("CLAIM REFUSED :: " + (e.shortMessage || e.message || e).toString().slice(0, 140)); }
+}
+
+const timers = [];
+async function render() {
+  timers.forEach(clearInterval); timers.length = 0;
+  try {
+    const n = Number(await registry.recordCount());
+    $("net").textContent = `registry ${CONTRACT} :: ethereum ${CHAIN_ID === 1 ? "mainnet" : "chain " + CHAIN_ID} :: ${n} record(s) filed :: max 12`;
+    const now0 = Math.floor(Date.now() / 1000);
+    const box = $("records"); box.innerHTML = "";
+    for (let i = 1; i <= n; i++) {
+      const r = await registry.record(i);
+      const live = !r.minted && now0 >= r.windowOpen && now0 < r.windowClose;
+      let stTxt, stCls;
+      if (r.minted) { stTxt = r.declassified ? "DECLASSIFIED" : "SEALED :: IN TRANSIT"; stCls = r.declassified ? "decl" : ""; }
+      else if (now0 < r.windowOpen) { stTxt = "PRE-WINDOW"; stCls = ""; }
+      else if (live) { stTxt = "WINDOW LIVE :: SUBJECT AIRBORNE"; stCls = ""; }
+      else { stTxt = "LOCKED :: UNCLAIMED :: SEALED FOREVER"; stCls = "gone"; }
+      const div = document.createElement("div"); div.className = "rec";
+      const img = document.createElement("img"); img.className = "thumb"; img.alt = "REC " + i; img.loading = "lazy";
+      div.appendChild(img);
+      const body = document.createElement("div"); body.className = "body";
+      const cdId = "cd" + i;
+      body.innerHTML =
+        `<div class="top"><span class="id">REC ${String(i).padStart(3, "0")}</span>` +
+        `<span class="st ${stCls}">${stTxt}</span></div>` +
+        `<div class="win">window ${fmt(r.windowOpen)} .. ${fmt(r.windowClose)}` +
+        (live ? `<br><span class="cd" id="${cdId}"></span>` : "") + `</div>` +
+        `<div class="hash">commit ${r.boardingPassHash}</div>`;
+      const btn = document.createElement("button");
+      btn.textContent = live ? `CLAIM :: ${ethers.formatEther(r.price)} ETH` : "UNAVAILABLE";
+      btn.disabled = !live;
+      if (live) btn.onclick = () => mint(i, r.price);
+      body.appendChild(btn);
+      div.appendChild(body);
+      box.appendChild(div);
+      arFetch(r.declassified ? r.declassifiedURI : r.sealedURI).then((m) => { if (m && m.image) arImg(img, m.image); else img.remove(); });
+      if (live) {
+        const close = Number(r.windowClose);
+        const tick = () => {
+          const left = close - Math.floor(Date.now() / 1000);
+          if (left <= 0) { render(); return; }
+          const el = $(cdId); if (!el) return;
+          el.textContent = `closes in ${Math.floor(left / 3600)}h ${Math.floor((left % 3600) / 60)}m ${left % 60}s`;
+        };
+        tick(); timers.push(setInterval(tick, 1000));
+      }
+    }
+    say("REGISTRY SYNCHRONIZED :: " + new Date().toISOString().slice(0, 19) + "Z");
+  } catch (e) {
+    $("net").textContent = "registry unreachable, retrying...";
+    setTimeout(render, 12000);
+  }
+}
+render();
+setInterval(render, 45000);
+</script>
+</body>
+</html>

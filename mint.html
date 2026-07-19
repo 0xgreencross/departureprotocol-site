@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>REGISTRY :: DEPARTURE_PROTOCOL.EXE</title>
-<meta name="description" content="Claim flight records while the subject is airborne. 0.00999 ETH per record, sealed until wheels-down, unclaimed records lock forever.">
+<meta name="description" content="Claim flight records while the subject is airborne. 0.0666 ETH per record, sealed until wheels-down, unclaimed records lock forever.">
 <link rel="canonical" href="https://departureprotocol.art/mint.html">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Form DPRT-7. Departure Protocol: an aviation surveillance dossier on Ethereum.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="REGISTRY :: DEPARTURE_PROTOCOL.EXE">
-<meta name="twitter:description" content="Claim flight records while the subject is airborne. 0.00999 ETH per record, sealed until wheels-down, unclaimed records lock forever.">
+<meta name="twitter:description" content="Claim flight records while the subject is airborne. 0.0666 ETH per record, sealed until wheels-down, unclaimed records lock forever.">
 <meta name="twitter:image" content="https://departureprotocol.art/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
@@ -143,7 +143,7 @@ async function render() {
     $("net").textContent = `registry ${CONTRACT} :: ethereum ${CHAIN_ID === 1 ? "mainnet" : "chain " + CHAIN_ID} :: ${n} record(s) filed :: max 12`;
     const now0 = Math.floor(Date.now() / 1000);
     const box = $("records"); box.innerHTML = "";
-    for (let i = 1; i <= n; i++) {
+    for (let i = n; i >= 1; i--) {
       const r = await registry.record(i);
       const live = !r.minted && now0 >= r.windowOpen && now0 < r.windowClose;
       let stTxt, stCls;

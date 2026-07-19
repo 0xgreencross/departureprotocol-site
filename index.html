@@ -177,7 +177,7 @@ async function load() {
     let liveCount = 0;
     const grid = document.getElementById("recgrid");
     grid.innerHTML = "";
-    for (let i = 1; i <= n; i++) {
+    for (let i = n; i >= 1; i--) {
       const r = await c.record(i);
       const [label, cls] = stateOf(r, now);
       if (!r.minted && now >= r.windowOpen && now < r.windowClose) liveCount++;
